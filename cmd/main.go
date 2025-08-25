@@ -3,20 +3,20 @@ package main
 import (
 	"habba/router"
 	"habba/scripts"
-	"log"
+	// "log"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 func main() {
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	db := scripts.ConnectDatabase()
 
 	
