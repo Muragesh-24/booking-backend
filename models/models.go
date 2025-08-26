@@ -11,10 +11,10 @@ import (
 // User represents a user in the system
 type User struct {
 	gorm.Model
-	// Name       string     `json:"name" gorm:"type:varchar(100);not null"`
+	Name       string     `json:"name" gorm:"type:varchar(100);not null"`
 	Email      string     `json:"email" gorm:"uniqueIndex;type:varchar(100);not null"`
 	// Password   string     `json:"password" gorm:"type:varchar(255);not null"`
-	// RollNumber string        `json:"roll" gorm:"not null"`
+	RollNumber string        `json:"roll" gorm:"not null"`
 	IsVerified bool       `json:"is_verified" gorm:"default:false"`
 	
 }

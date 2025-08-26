@@ -95,7 +95,7 @@ func UserRoutes(r *gin.Engine,db *gorm.DB) *gin.Engine {
     //     return
     // }
     // u.Password = hashedPwd
-    u.IsVerified = false
+    u.IsVerified = true
 
     
     if err := db.Create(&u).Error; err != nil {
@@ -108,13 +108,13 @@ func UserRoutes(r *gin.Engine,db *gorm.DB) *gin.Engine {
         ctx.JSON(500, gin.H{"error": "could not generate token"})
         return
     }
-    if err := scripts.EmailVerifymail(u.Email, token); err != nil {
-        fmt.Println(err.Error())
-       ctx.JSON(201, gin.H{"message": "Signup successful, verification email failed,"})
-        return
-    }
-
-    ctx.JSON(200, gin.H{"message": "signup successful, please verify email"})
+    // if err := scripts.EmailVerifymail(u.Email, token); err != nil {
+    //     fmt.Println(err.Error())
+    //    ctx.JSON(201, gin.H{"message": "Signup successful, verification email failed,"})
+    //     return
+    // }
+// ctx.Redirect(302, fmt.Sprintf("https://kannaddaganeshiitk.vercel.app/auth/verified?query=%s", token))
+    ctx.JSON(200, gin.H{"message": "signup successful, please verify email","token":token})
 })
 
 
