@@ -20,8 +20,8 @@ func Tokengeneration(u models.User) (string, error) {
 	}
 	claims := Claims{
 		Email: u.Email,
-		Roll:  u.RollNumber,
-		Name:  u.Name,
+		// Roll:  u.RollNumber,
+		// Name:  u.Name,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
 		},
