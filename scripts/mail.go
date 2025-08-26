@@ -8,18 +8,29 @@ import (
 )
 
 func EmailVerifymail(to string, token string) error {
-    from := os.Getenv("Email")
-    pass := os.Getenv("Emailpass")
-    smtpHost := "smtp.gmail.com"
+    smtpUser := os.Getenv("Emailuser")       // your Brevo SMTP login (95a497001@smtp-brevo.com)
+    smtpPass := os.Getenv("Emailpass")   // your Brevo SMTP password
+    smtpHost := "smtp-relay.brevo.com"
     smtpPort := "587"
 
-    msg := []byte("Subject: Verify your email\n\n" +
-        "Click the link to verify: https://booking-backend-csn1.onrender.com/user/verify?token=" + token)
+    // 👇 Use a verified sender email, not the Brevo login
+    from := os.Getenv("Email")      
 
-    auth := smtp.PlainAuth("", from, pass, smtpHost)
+    verificationURL := "https://booking-backend-csn1.onrender.com/user/verify?token=" + token
+
+    // Proper RFC 5322 headers
+    msg := []byte("From: EngiGrow <" + from + ">\r\n" +
+        "To: " + to + "\r\n" +
+        "Subject: Verify your email\r\n" +
+        "\r\n" +
+        "Click the link to verify: " + verificationURL)
+
+    auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
 
     return smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
 }
+
+
 
 
 
