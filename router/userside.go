@@ -109,7 +109,8 @@ func UserRoutes(r *gin.Engine,db *gorm.DB) *gin.Engine {
         return
     }
     if err := scripts.EmailVerifymail(u.Email, token); err != nil {
-        ctx.JSON(500, gin.H{"error": "could not send verification email"})
+        fmt.Println(err.Error())
+       ctx.JSON(201, gin.H{"message": "Signup successful, verification email failed,"})
         return
     }
 
@@ -147,7 +148,7 @@ user.GET("/verify", func(ctx *gin.Context) {
     }
 
    
-   ctx.Redirect(302, fmt.Sprintf("http://localhost:3000/verified?query=%s", token))
+   ctx.Redirect(302, fmt.Sprintf("https://kannaddaganeshiitk.vercel.app/auth/verified?query=%s", token))
 
 })
 

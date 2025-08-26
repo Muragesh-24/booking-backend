@@ -14,7 +14,7 @@ func EmailVerifymail(to string, token string) error {
     smtpPort := "587"
 
     msg := []byte("Subject: Verify your email\n\n" +
-        "Click the link to verify: http://localhost:8082/user/verify?token=" + token)
+        "Click the link to verify: https://booking-backend-csn1.onrender.com/user/verify?token=" + token)
 
     auth := smtp.PlainAuth("", from, pass, smtpHost)
 
