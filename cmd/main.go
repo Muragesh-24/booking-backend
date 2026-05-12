@@ -3,40 +3,52 @@ package main
 import (
 	"habba/router"
 	"habba/scripts"
-	// "log"
+	"log"
+	"os"
+
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	// "github.com/joho/godotenv"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 
-	// err := godotenv.Load()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
 	db := scripts.ConnectDatabase()
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
-	
+	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			"http://localhost:3000",
+			"http://localhost:5173",
+			"http://127.0.0.1:3000",
+			"http://127.0.0.1:5173",
+			"https://kannaddaganeshiitk.vercel.app",
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+	r.Use(scripts.LimitPerIP())
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok"})
+	})
+	r = router.UserRoutes(r, db)
+	r = router.AdminRoutes(r, db)
 
-
-r := gin.Default()
-r.Use(cors.New(cors.Config{
-	AllowOrigins:     []string{"http://localhost:3000","https://kannaddaganeshiitk.vercel.app"}, 
-	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-	AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-	ExposeHeaders:    []string{"Content-Length"},
-	AllowCredentials: true,
-	MaxAge:           12 * time.Hour,
-}))
-r.Use(scripts.LimitPerIP())
-r = router.UserRoutes(r,db)
-r =router.AdminRoutes(r,db)
-	
-	r.Run(":8088")
-
-	
-	select {}
+	log.Printf("Server running on http://localhost:%s\n", port)
+	if err := r.Run(":" + port); err != nil {
+		log.Fatal(err)
+	}
 }

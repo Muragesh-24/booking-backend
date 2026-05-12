@@ -30,7 +30,7 @@ func LimitPerIP() gin.HandlerFunc {
 		} else {
 			v.Requests++
 			v.LastSeen = time.Now()
-			if v.Requests > 15 { 
+			if v.Requests > 150 { 
 				mu.Unlock()
 				c.JSON(http.StatusTooManyRequests, gin.H{
 					"error": "Too many requests, please try again later",

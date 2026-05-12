@@ -5,43 +5,45 @@ import (
 	"habba/models"
 	"net/smtp"
 	"os"
+	"strings"
 )
 
 func EmailVerifymail(to string, token string) error {
-    smtpUser := os.Getenv("Emailuser")       // your Brevo SMTP login (95a497001@smtp-brevo.com)
-    smtpPass := os.Getenv("Emailpass")   // your Brevo SMTP password
-    smtpHost := "smtp-relay.brevo.com"
-    smtpPort := "587"
+	smtpUser := os.Getenv("Emailuser") // your Brevo SMTP login (95a497001@smtp-brevo.com)
+	smtpPass := os.Getenv("Emailpass") // your Brevo SMTP password
+	smtpHost := "smtp-relay.brevo.com"
+	smtpPort := "587"
 
-    // 👇 Use a verified sender email, not the Brevo login
-    from := os.Getenv("Email")      
+	// 👇 Use a verified sender email, not the Brevo login
+	from := os.Getenv("Email")
 
-    verificationURL := "https://booking-backend-csn1.onrender.com/user/verify?token=" + token
+	frontendURL := strings.TrimSuffix(os.Getenv("FRONTEND_URL"), "/")
+	if frontendURL == "" {
+		frontendURL = "https://kannaddaganeshiitk.vercel.app"
+	}
 
-    // Proper RFC 5322 headers
-    msg := []byte("From: EngiGrow <" + from + ">\r\n" +
-        "To: " + to + "\r\n" +
-        "Subject: Verify your email\r\n" +
-        "\r\n" +
-        "Click the link to verify: " + verificationURL)
+	verificationURL := frontendURL + "/auth/verified?query=" + token
 
-    auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
+	// Proper RFC 5322 headers
+	msg := []byte("From: EngiGrow <" + from + ">\r\n" +
+		"To: " + to + "\r\n" +
+		"Subject: Verify your email\r\n" +
+		"\r\n" +
+		"Click the link to verify: " + verificationURL)
 
-    return smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
+	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
+
+	return smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
 }
 
-
-
-
-
 func EmailInvitation(to string, book models.Booking) error {
-    from := os.Getenv("Email")
-    pass := os.Getenv("Emailpass")
-    smtpHost := "smtp.gmail.com"
-    smtpPort := "587"
+	from := os.Getenv("Email")
+	pass := os.Getenv("Emailpass")
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
 
-    subject := "🎉 Your Ganesh Chaturthi Order is Confirmed!"
-    body := fmt.Sprintf(`
+	subject := "🎉 Your Ganesh Chaturthi Order is Confirmed!"
+	body := fmt.Sprintf(`
 <!DOCTYPE html>
 <html>
 <head>
@@ -66,12 +68,12 @@ func EmailInvitation(to string, book models.Booking) error {
 </html>
 `, book.Name)
 
-    msg := []byte("To: " + to + "\r\n" +
-        "Subject: " + subject + "\r\n" +
-        "MIME-Version: 1.0\r\n" +
-        "Content-Type: text/html; charset=\"UTF-8\"\r\n\r\n" +
-        body)
+	msg := []byte("To: " + to + "\r\n" +
+		"Subject: " + subject + "\r\n" +
+		"MIME-Version: 1.0\r\n" +
+		"Content-Type: text/html; charset=\"UTF-8\"\r\n\r\n" +
+		body)
 
-    auth := smtp.PlainAuth("", from, pass, smtpHost)
-    return smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
+	auth := smtp.PlainAuth("", from, pass, smtpHost)
+	return smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
 }
