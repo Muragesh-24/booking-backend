@@ -159,7 +159,7 @@ func UserRoutes(r *gin.Engine, db *gorm.DB) *gin.Engine {
 				Name:       req.Name,
 				Email:      req.Email,
 				RollNumber: req.Roll,
-				IsVerified: true,
+				IsVerified: false,
 			}
 
 			if err := db.Create(&u).Error; err != nil {
@@ -170,6 +170,12 @@ func UserRoutes(r *gin.Engine, db *gorm.DB) *gin.Engine {
 			token, err := scripts.Tokengeneration(u)
 			if err != nil {
 				ctx.JSON(500, gin.H{"error": "could not generate token"})
+				return
+			}
+		    errr:= scripts.EmailVerifymail(u.Email, token)
+			if errr != nil {
+				fmt.Println("Failed to send verification email:", errr)
+				ctx.JSON(500, gin.H{"error": "Failed to send verification email"})
 				return
 			}
 			ctx.JSON(200, gin.H{"message": "signup successful, please verify email", "token": token})
@@ -205,7 +211,7 @@ func UserRoutes(r *gin.Engine, db *gorm.DB) *gin.Engine {
 
 			frontendURL := strings.TrimSuffix(os.Getenv("FRONTEND_URL"), "/")
 			if frontendURL == "" {
-				frontendURL = "https://kannaddaganeshiitk.vercel.app"
+				frontendURL = "https://booking.kannadda.muragesh.tech/"
 			}
 			ctx.Redirect(302, fmt.Sprintf("%s/auth/verified?query=%s", frontendURL, token))
 

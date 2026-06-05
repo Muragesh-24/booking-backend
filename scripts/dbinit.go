@@ -3,9 +3,9 @@ package scripts
 import (
 	"fmt"
 	"habba/models"
-
 	"log"
 	"os"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -14,7 +14,6 @@ import (
 var DB *gorm.DB
 
 func ConnectDatabase() *gorm.DB {
-
 	dsn := os.Getenv("DB_URL")
 	if dsn == "" {
 		dsn = os.Getenv("DATABASE_URL")
@@ -22,16 +21,38 @@ func ConnectDatabase() *gorm.DB {
 	if dsn == "" {
 		log.Fatal("DB_URL or DATABASE_URL not set in .env file")
 	}
+
 	database, err := gorm.Open(postgres.New(postgres.Config{
 		DSN:                  dsn,
 		PreferSimpleProtocol: true,
-	}), &gorm.Config{})
+	}), &gorm.Config{
+		PrepareStmt: true, // improves repeated query performance
+	})
+
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	database.AutoMigrate(&models.Booking{}, &models.User{})
-	fmt.Println(" Database connected and migrated successfully")
+	sqlDB, err := database.DB()
+	if err != nil {
+		log.Fatal("Failed to get sql DB:", err)
+	}
 
-	return database
+	// Connection pool settings
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(50)
+	sqlDB.SetConnMaxLifetime(30 * time.Minute)
+
+	err = database.AutoMigrate(
+		&models.User{},
+		&models.Booking{},
+	)
+	if err != nil {
+		log.Fatal("Auto migration failed:", err)
+	}
+
+	DB = database
+
+	fmt.Println("Database connected and migrated successfully")
+	return DB
 }

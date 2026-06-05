@@ -9,13 +9,13 @@ import (
 )
 
 func EmailVerifymail(to string, token string) error {
-	smtpUser := os.Getenv("Emailuser") // your Brevo SMTP login (95a497001@smtp-brevo.com)
-	smtpPass := os.Getenv("Emailpass") // your Brevo SMTP password
-	smtpHost := "smtp-relay.brevo.com"
-	smtpPort := "587"
+	smtpUser := os.Getenv("Emailuser") 
+	smtpPass := os.Getenv("EmailPass") 
+smtpHost := "smtp.gmail.com"
+smtpPort := "587"
 
-	// 👇 Use a verified sender email, not the Brevo login
-	from := os.Getenv("Email")
+	//  Use a verified sender email, not the Brevo login
+	from := smtpUser
 
 	frontendURL := strings.TrimSuffix(os.Getenv("FRONTEND_URL"), "/")
 	if frontendURL == "" {
@@ -32,6 +32,7 @@ func EmailVerifymail(to string, token string) error {
 		"Click the link to verify: " + verificationURL)
 
 	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
+
 
 	return smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
 }
