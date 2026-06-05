@@ -31,6 +31,8 @@ func main() {
 
 			
 			"https://kannaddabalag.muragesh.tech",
+			"https://booking.kannadda.muragesh.tech",
+			"http://localhost:3000",
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
