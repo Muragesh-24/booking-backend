@@ -11,7 +11,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -172,7 +171,16 @@ func UserRoutes(r *gin.Engine, db *gorm.DB) *gin.Engine {
 				ctx.JSON(500, gin.H{"error": "could not generate token"})
 				return
 			}
-		    errr:= scripts.EmailVerifymail(u.Email, token)
+
+		    // errr:= scripts.EmailVerifymail(u.Email, token)
+			errr:=scripts.RabbitMQChannel.Publish(
+				"", // exchange
+				"mail_queue", // routing key
+				false, // mandatory
+				false, // immediate
+	            scripts.EmailVerifyMessage(u.Email, token),
+			)
+
 			if errr != nil {
 				fmt.Println("Failed to send verification email:", errr)
 				ctx.JSON(500, gin.H{"error": "Failed to send verification email"})

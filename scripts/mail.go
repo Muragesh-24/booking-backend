@@ -5,16 +5,19 @@ import (
 	"habba/models"
 	"net/smtp"
 	"os"
+	"encoding/json"
 	"strings"
+	"log"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func EmailVerifymail(to string, token string) error {
-	smtpUser := os.Getenv("Emailuser") 
-	smtpPass := os.Getenv("EmailPass") 
-smtpHost := "smtp.gmail.com"
-smtpPort := "587"
+func SendEmailVerificationMail(to string, token string) error {
+	smtpUser := os.Getenv("Emailuser")
+	smtpPass := os.Getenv("EmailPass")
 
-	//  Use a verified sender email, not the Brevo login
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
 	from := smtpUser
 
 	frontendURL := strings.TrimSuffix(os.Getenv("FRONTEND_URL"), "/")
@@ -24,7 +27,6 @@ smtpPort := "587"
 
 	verificationURL := frontendURL + "/auth/verified?query=" + token
 
-	// Proper RFC 5322 headers
 	msg := []byte("From: EngiGrow <" + from + ">\r\n" +
 		"To: " + to + "\r\n" +
 		"Subject: Verify your email\r\n" +
@@ -33,8 +35,20 @@ smtpPort := "587"
 
 	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
 
-
 	return smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
+} 
+func EmailVerifyMessage(to string, token string) amqp.Publishing {
+	payload := map[string]string{
+		"to":    to,
+		"token": token,
+	}
+
+	body, _ := json.Marshal(payload)
+
+	return amqp.Publishing{
+		ContentType: "application/json",
+		Body:        body,
+	}
 }
 
 func EmailInvitation(to string, book models.Booking) error {
@@ -77,4 +91,44 @@ func EmailInvitation(to string, book models.Booking) error {
 
 	auth := smtp.PlainAuth("", from, pass, smtpHost)
 	return smtp.SendMail(smtpHost+":"+smtpPort, auth, from, []string{to}, msg)
+}
+
+type EmailVerifyPayload struct {
+	To    string `json:"to"`
+	Token string `json:"token"`
+}
+
+func StartEmailVerificationConsumer() {
+	msgs, err := RabbitMQChannel.Consume(
+		"mail_queue",
+		"",
+		true,  // autoAck
+		false,
+		false,
+		false,
+		nil,
+	)
+
+	if err != nil {
+		log.Fatal("Failed to register email consumer:", err)
+	}
+
+	go func() {
+		for msg := range msgs {
+			var payload EmailVerifyPayload
+
+			if err := json.Unmarshal(msg.Body, &payload); err != nil {
+				log.Println("Invalid email payload:", err)
+				continue
+			}
+
+			err := SendEmailVerificationMail(payload.To, payload.Token)
+			if err != nil {
+				log.Println("Failed to send verification email:", err)
+				continue
+			}
+
+			log.Println("Verification email sent to:", payload.To)
+		}
+	}()
 }

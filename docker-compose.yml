@@ -24,7 +24,22 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-1
+    ports:
+      - "5679:5672"
+      - "15672:15672" # for the ui
+    environment:
+      # FIXME(prod): Update the user id and password
+      RABBITMQ_DEFAULT_USER: this_is_mjk
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5  
 
 volumes:
   db-data:
